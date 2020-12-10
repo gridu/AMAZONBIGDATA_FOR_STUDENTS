@@ -18,10 +18,10 @@
     "Ec2Instance": {
 	  "Type": "AWS::EC2::Instance",
 	  "Properties": {
-	  	"AssociatePublicIpAddress": "true",
-	  	"KeyName": { "Ref" : "KeyName" },
-	    "InstanceType": { "Ref" : "InstanceType" },
-	    "ImageId": { "Ref" : "AMIArn" }
+        "AssociatePublicIpAddress": "true",
+        "KeyName": { "Ref" : "KeyName" },
+        "InstanceType": { "Ref" : "InstanceType" },
+        "ImageId": { "Ref" : "AMIArn" }
 	  }
 	}
   }
