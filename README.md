@@ -1,4 +1,4 @@
-# Repository with materials for students [Amazon Big Data GridU course](https://gridu.litmos.com/course/2859381)
+# Repository with materials for students of [Amazon Big Data GridU course](https://gridu.litmos.com/course/2859381)
 
 Modules description:
 * `cloudformation` Examples of templates for infrastructure deployment (EMR, Glue, EC2, S3)
