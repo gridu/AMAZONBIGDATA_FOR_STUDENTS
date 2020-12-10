@@ -1,0 +1,150 @@
+{
+    "Description": "Glue Crawler to discover and filter Views data S3",
+    "Parameters": {
+         "viewsInputS3Path": {
+            "Description": "Views input S3 path",
+            "Type": "String"
+         },
+         "outputJobS3Path": {
+            "Description": "Etl job output path in S3",
+            "Type": "String"
+         },
+         "ipsDynamoDbTable": {
+            "Description": "IPs DynamoDb table name",
+            "Type": "String"
+         },
+         "EtlJobScriptPath": {
+            "Description": "Path to script on S3",
+            "Type": "String"
+         },
+         "glueRole": {
+           "Type": "String",
+           "Description": "Glue execution role",
+           "Default": "arn:aws:iam::571632058847:role/YOUR_ROLE"
+         }
+
+    },
+    "Resources": {
+        "viewDatabase": {
+            "Type": "AWS::Glue::Database",
+            "Properties": {
+                "CatalogId": {
+                    "Ref": "AWS::AccountId"
+                },
+                "DatabaseInput": {
+                    "Name": {"Fn::Sub": "${AWS::StackName}-views"}
+                }
+            }
+        },
+        "viewsTable": {
+            "DependsOn": "viewDatabase",
+            "Type": "AWS::Glue::Table",
+            "Properties": {
+                "CatalogId": {"Ref": "AWS::AccountId"},
+                "DatabaseName": {"Ref": "viewDatabase"},
+                "TableInput": {
+                    "Name":  {"Fn::Sub": "${AWS::StackName}-views_unfiltered"},
+                    "TableType": "EXTERNAL_TABLE",
+                    "Parameters": {
+                        "classification": "json"
+                    },
+                    "PartitionKeys": [
+                        {
+                          "Name" : "KEY_NAME",
+                          "Type" : "string"
+                        }
+                    ],
+                    "StorageDescriptor": {
+                        "OutputFormat": "org.apache.hadoop.hive.ql.io.HiveIgnoreKeyTextOutputFormat",
+                        "Columns": [
+                            {
+                              "Name" : "device_id",
+                              "Type" : "string"
+                            },
+                            {
+                              "Name" : "device_type",
+                              "Type" : "string"
+                            },
+                            {
+                              "Name" : "ANOTHER_FIELD",
+                              "Type" : "string"
+                            }
+                        ],
+                        "InputFormat": "org.apache.hadoop.mapred.TextInputFormat",
+                        "Location": {"Ref": "viewsInputS3Path"},
+                        "SerdeInfo": {
+                            "SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe"
+                        }
+                    }
+
+                }
+            }
+        },
+        "viewsCrawler": {
+            "Type": "AWS::Glue::Crawler",
+            "Properties": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-views-crawler"},
+                "Role": {"Ref": "glueRole"},
+                "DatabaseName": {
+                    "Ref": "viewDatabase"
+                },
+                "SchemaChangePolicy": {
+                    "UpdateBehavior": "LOG",
+                    "DeleteBehavior": "LOG"
+                },
+                "Targets": {
+                    "CatalogTargets": [
+                        {
+                            "DatabaseName": {"Ref": "viewDatabase"},
+                            "Tables": [ {"Ref": "viewsTable"}]
+                        }
+                    ]
+                }
+            }
+        },
+        "suspiciousIPsCrawler": {
+            "Type": "AWS::Glue::Crawler",
+            "Properties": {
+                "Name": {"Fn::Sub": "${AWS::StackName}-ips-crawler"},
+                "Role": {"Ref": "glueRole"},
+                "DatabaseName": {
+                    "Ref": "viewDatabase"
+                },
+                "Targets": {
+                    "DynamoDBTargets": [
+                        {
+                            "Path": {"Ref": "ipsDynamoDbTable"}
+                        }
+                    ]
+                }
+            }
+        },
+        "eltJob": {
+            "Type": "AWS::Glue::Job",
+            "Properties": {
+                "WorkerType": "G.1X",
+                "GlueVersion": "2.0",
+                "NumberOfWorkers": "5",
+                "Command": {
+                  "Name": "glueetl",
+                  "PythonVersion": "3",
+                  "ScriptLocation": {"Ref": "EtlJobScriptPath"}
+                },
+                "LogUri": "s3://YOUR_BUCKET/glue/temp",
+                "DefaultArguments": {
+                  "--enable-metrics": "true",
+                  "--enable-continuous-cloudwatch-log": "true",
+                  "--enable-continuous-log-filter": "true",
+                  "--enable-spark-ui": "true",
+                  "--spark-event-logs-path": "s3://YOUR_BUCKET/glue/sparkHistoryLogs/",
+                  "--job-bookmark-option": "job-bookmark-enable",
+                  "--other_param":  "param_value"
+                },
+                "Name": {"Fn::Sub": "${AWS::StackName}-views-filter-job"},
+                "Role": {
+                  "Ref": "glueRole"
+                }
+            }
+        }
+    }
+}

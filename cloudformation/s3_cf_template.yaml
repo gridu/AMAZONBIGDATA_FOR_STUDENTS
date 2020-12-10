@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: "AWS Big Data course"
+Parameters:
+  BucketName:
+    Type: String
+    Description: "Name of S3 bucket to create for storing data"
+Resources:
+  Bucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      AccessControl: "Private"
+      BucketName: !Ref BucketName
+Outputs:
+  BucketName:
+    Value: !Ref BucketName

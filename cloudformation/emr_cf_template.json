@@ -1,0 +1,68 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters" : {
+    "InstanceType" : {
+      "Type" : "String",
+      "Default": "m5.xlarge"
+    },
+    "MasterInstanceCount" : {
+      "Type" : "Number",
+      "Default": "1"
+    },
+    "ReleaseLabel" : {
+      "Type" : "String",
+      "Default": "emr-5.31.0"
+    },
+    "SubnetId" : {
+      "Type" : "String",
+      "Default": "subnet-0bab0c46"
+    },
+    "TerminationProtected" : {
+      "Type" : "String",
+      "Default" : "false"
+    },
+    "emrRole": {
+       "Type" : "String",
+       "Default": "EMR_DefaultRole"
+    },
+    "emrEc2Role": {
+       "Type" : "String",
+       "Default": "EMR_EC2_DefaultRole"
+    }
+  },
+  "Resources": {
+    "cluster": {
+      "Type": "AWS::EMR::Cluster",
+      "Properties": {
+        "Applications": [
+          {
+            "Name": "Spark"
+          }
+        ],
+        "Instances": {
+          "Ec2KeyName": "YOUR_KEY_NAME",
+          "MasterInstanceGroup": {
+            "InstanceCount": {"Ref": "MasterInstanceCount"},
+            "InstanceType": {"Ref" : "InstanceType"},
+            "Market": "ON_DEMAND",
+            "Name": "master"
+          },
+          "TerminationProtected" : {"Ref" : "TerminationProtected"},
+          "Ec2SubnetId" : {"Ref" : "SubnetId"}
+        },
+        "Name": "emr-test",
+        "JobFlowRole" : {"Ref": "emrEc2Role"},
+        "ServiceRole" : {"Ref": "emrRole"},
+        "ReleaseLabel" : {"Ref" : "ReleaseLabel"},
+        "LogUri": "s3://YOUR_BUCKET/emr/logs",
+        "VisibleToAllUsers" : true,
+        "Tags": [
+          {
+            "Key": "owner",
+            "Value": "YOUR_USER_NAME"
+          }
+        ]
+      }
+    }
+  }
+}

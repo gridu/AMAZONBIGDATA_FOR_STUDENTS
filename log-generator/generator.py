@@ -101,7 +101,7 @@ def generate_or_load_users(n, force=False):
         (k, *v)
         for k, v in {
             i: (t, di, bot)
-            for i, t, di, bot in { generate_device() for _ in range(n) }
+            for i, t, di, bot in {generate_device() for _ in range(n)}
         }.items()
     ], force=force)
 
@@ -268,4 +268,3 @@ def main(mode, stream=None):
 
 if __name__ == "__main__":
     main(*sys.argv[1:])
-

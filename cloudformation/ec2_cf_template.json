@@ -1,0 +1,28 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Parameters" : {
+    "InstanceType" : {
+      "Type" : "String",
+      "Default": "t2.micro"
+    },
+    "AMIArn" : {
+      "Type" : "String",
+      "Default": "ami-0bd6de9a4728d1a95"
+    },
+    "KeyName" : {
+      "Type" : "String",
+      "Default": "YOUR_KEY_NAME"
+    }
+  },
+  "Resources": {
+    "Ec2Instance": {
+	  "Type": "AWS::EC2::Instance",
+	  "Properties": {
+	  	"AssociatePublicIpAddress": "true",
+	  	"KeyName": { "Ref" : "KeyName" },
+	    "InstanceType": { "Ref" : "InstanceType" },
+	    "ImageId": { "Ref" : "AMIArn" }
+	  }
+	}
+  }
+}
