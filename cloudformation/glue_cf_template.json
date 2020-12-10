@@ -76,7 +76,6 @@
                             "SerializationLibrary": "org.openx.data.jsonserde.JsonSerDe"
                         }
                     }
-
                 }
             }
         },
