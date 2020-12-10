@@ -137,7 +137,7 @@
                   "--enable-spark-ui": "true",
                   "--spark-event-logs-path": "s3://YOUR_BUCKET/glue/sparkHistoryLogs/",
                   "--job-bookmark-option": "job-bookmark-enable",
-                  "--other_param":  "param_value"
+                  "--other_param": "param_value"
                 },
                 "Name": {"Fn::Sub": "${AWS::StackName}-views-filter-job"},
                 "Role": {
