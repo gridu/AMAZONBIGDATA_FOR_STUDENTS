@@ -15,6 +15,7 @@ Most of the behaviour can be controlled by tweaking global variables below. You'
 """
 
 import csv
+import io
 import json
 import os
 import random
@@ -229,16 +230,19 @@ def generate_batch(users, items):
     prev_hour = datetime.now().replace(microsecond=0, second=0, minute=0) - timedelta(hours=1)
     logs = generate_logs(users, prev_hour, lambda *a: line_generator_item_access(*a, items=items))
 
-    with open("batch.csv", "w") as batch:
+    with io.StringIO() as batch:
         logs = map(json.loads, logs)
         first, rest = next(logs), logs
         writer = csv.DictWriter(batch, fieldnames=first.keys())
         writer.writeheader()
         writer.writerow(first)
         writer.writerows(rest)
-    boto3.client("s3").upload_file(
-        "batch.csv", S3_BUCKET, S3_PREFIX + prev_hour.strftime("/%Y/%m/%d/%H.csv")
-    )
+        batch.flush()
+        boto3.client("s3").upload_fileobj(
+            io.BytesIO(batch.getvalue().encode()),
+            S3_BUCKET,
+            S3_PREFIX + prev_hour.strftime("/%Y/%m/%d/%H.csv")
+        )
 
 
 def main(mode, stream=None):
